@@ -20,6 +20,11 @@ def device_stats(dev):
     dev_size = int(output)
     return {"dev_size": dev_size}
 
+def device_sector_size(dev):
+    output = subprocess.run(
+        f"blockdev --getpbsz {dev}", shell=True, check=True, capture_output=True
+    ).stdout.decode()
+    return int(output)
 
 def dev_to_mountpoint(dev_name):
     try:

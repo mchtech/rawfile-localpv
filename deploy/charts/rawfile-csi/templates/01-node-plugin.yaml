@@ -53,6 +53,10 @@ spec:
           hostPath:
             path: /var/csi/rawfile
             type: DirectoryOrCreate
+        - name: dev-block-dir
+          hostPath:
+            path: /dev/block
+            type: Directory
       containers:
         - name: csi-driver
           image: "{{ .Values.node.image.repository }}:{{ .Values.node.image.tag }}"
@@ -88,6 +92,8 @@ spec:
               mountPropagation: "Bidirectional"
             - name: data-dir
               mountPath: /data
+            - name: dev-block-dir
+              mountPath: /dev/block
           resources:
             {{- toYaml .Values.node.resources | nindent 12 }}
         - name: node-driver-registrar

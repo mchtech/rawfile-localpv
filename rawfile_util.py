@@ -1,12 +1,13 @@
 import glob
 import json
 from os.path import basename, dirname
+from os import lstat, major, minor
 from pathlib import Path
 import time
 
 from consts import DATA_DIR
 from declarative import be_absent
-from fs_util import path_stats
+from fs_util import path_stats, device_sector_size
 from volume_schema import migrate_to, LATEST_SCHEMA_VERSION
 from util import run, run_out
 
@@ -86,12 +87,19 @@ def attach_loop(file) -> str:
             run(f"mknod {loop_file} b 7 {loop_dev_id}")
         return loop_file
 
+    # get the sector size of the block device
+    stat = lstat(file)
+    ma, mi = major(stat.st_dev), minor(stat.st_dev)
+    sector_size = device_sector_size(f"/dev/block/{ma}:{mi}")
+
     while True:
         devs = attached_loops(file)
         if len(devs) > 0:
+            # compatible with old versions of losetup that failed to apply --direct-io before setting --sector-size
+            run(f"losetup --direct-io=on {devs[0]}")
             return devs[0]
         next_loop()
-        run(f"losetup --direct-io=on -f {file}")
+        run(f"losetup --sector-size {sector_size} --direct-io=on -f {file}")
 
 
 def detach_loops(file) -> None:
