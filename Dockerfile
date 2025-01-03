@@ -18,6 +18,7 @@ ADD ./requirements.txt ./
 RUN pip install -r ./requirements.txt
 
 ADD ./ ./
+RUN python3 /usr/local/lib/python3.11/site-packages/grpc_tools/protoc.py --proto_path=protos/ protos/csi.proto --grpc_python_out=csi/ --python_out=csi/
 
 ENTRYPOINT ["/usr/bin/env", "python3", "/app/rawfile.py"]
 CMD ["csi-driver"]
